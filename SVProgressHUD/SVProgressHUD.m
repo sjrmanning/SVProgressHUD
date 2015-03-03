@@ -49,6 +49,7 @@ static const CGFloat SVProgressHUDUndefinedProgress = -1;
 @property (nonatomic, strong) UILabel *stringLabel;
 @property (nonatomic, strong) UIImageView *imageView;
 @property (nonatomic, strong) SVIndefiniteAnimatedView *indefiniteAnimatedView;
+@property (nonatomic, strong) UIView *customAnimatedView;
 
 @property (nonatomic, readwrite) CGFloat progress;
 @property (nonatomic, readwrite) NSUInteger activityCount;
@@ -85,6 +86,11 @@ static const CGFloat SVProgressHUDUndefinedProgress = -1;
 
 
 #pragma mark - Setters
+
++ (void)setAnimatedView:(UIView *)animatedView
+{
+    [[self sharedView] setCustomAnimatedView:animatedView];
+}
 
 + (void)setStatus:(NSString *)string {
 	[[self sharedView] setStatus:string];
@@ -400,6 +406,9 @@ static const CGFloat SVProgressHUDUndefinedProgress = -1;
         
         CGPoint center = CGPointMake((CGRectGetWidth(self.hudView.bounds)/2), 36.0f);
         self.indefiniteAnimatedView.center = center;
+
+        [self.customAnimatedView sizeToFit];
+        self.customAnimatedView.center = center;
         
         if(self.progress != SVProgressHUDUndefinedProgress)
             self.backgroundRingLayer.position = self.ringLayer.position = CGPointMake((CGRectGetWidth(self.hudView.bounds)/2), 36.0f);
@@ -409,6 +418,9 @@ static const CGFloat SVProgressHUDUndefinedProgress = -1;
         
         CGPoint center = CGPointMake((CGRectGetWidth(self.hudView.bounds)/2), CGRectGetHeight(self.hudView.bounds)/2);
         self.indefiniteAnimatedView.center = center;
+
+        [self.customAnimatedView sizeToFit];
+        self.customAnimatedView.center = center;
         
         if(self.progress != SVProgressHUDUndefinedProgress)
             self.backgroundRingLayer.position = self.ringLayer.position = CGPointMake((CGRectGetWidth(self.hudView.bounds)/2), CGRectGetHeight(self.hudView.bounds)/2);
@@ -626,6 +638,7 @@ static const CGFloat SVProgressHUDUndefinedProgress = -1;
         self.imageView.image = nil;
         self.imageView.hidden = NO;
         [self.indefiniteAnimatedView removeFromSuperview];
+        [self.customAnimatedView removeFromSuperview];
         
         self.ringLayer.strokeEnd = progress;
         
@@ -634,7 +647,13 @@ static const CGFloat SVProgressHUDUndefinedProgress = -1;
     } else {
         self.activityCount++;
         [self cancelRingLayerAnimation];
-        [self.hudView addSubview:self.indefiniteAnimatedView];
+
+        if (self.customAnimatedView) {
+            [self.hudView addSubview:self.customAnimatedView];
+        }
+        else {
+            [self.hudView addSubview:self.indefiniteAnimatedView];
+        }
     }
     
     if(self.maskType != SVProgressHUDMaskTypeNone) {
@@ -721,6 +740,7 @@ static const CGFloat SVProgressHUDUndefinedProgress = -1;
     self.stringLabel.text = string;
     [self updatePosition];
     [self.indefiniteAnimatedView removeFromSuperview];
+    [self.customAnimatedView removeFromSuperview];
     
     if(self.maskType != SVProgressHUDMaskTypeNone) {
         self.overlayView.userInteractionEnabled = YES;
@@ -771,6 +791,8 @@ static const CGFloat SVProgressHUDUndefinedProgress = -1;
                              
                              [_indefiniteAnimatedView removeFromSuperview];
                              _indefiniteAnimatedView = nil;
+
+                             [_customAnimatedView removeFromSuperview];
                              
                              UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, nil);
                              
